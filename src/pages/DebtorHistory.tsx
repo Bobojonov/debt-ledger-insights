@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Download, RefreshCcw } from "lucide-react";
@@ -24,6 +23,7 @@ const DebtorHistory = () => {
     debtorHistory, 
     totalDebtAmount,
     totalPaidAmount,
+    totalReductionAmount,
     fetchDebtorHistory,
     loading,
     limit,
@@ -33,8 +33,8 @@ const DebtorHistory = () => {
     setOffset
   } = useDebtorStore();
   
-  // Calculate remaining debt
-  const remainingDebt = totalDebtAmount - totalPaidAmount;
+  // Calculate remaining debt (now including reductions)
+  const remainingDebt = totalDebtAmount - totalPaidAmount - totalReductionAmount;
 
   useEffect(() => {
     if (id) {
@@ -113,7 +113,8 @@ const DebtorHistory = () => {
           {debtorHistory.length > 0 && (
             <DebtorSummary 
               totalDebt={totalDebtAmount} 
-              totalPaid={totalPaidAmount} 
+              totalPaid={totalPaidAmount}
+              totalReductions={totalReductionAmount}
               remainingDebt={remainingDebt}
             />
           )}

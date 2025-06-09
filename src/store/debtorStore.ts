@@ -1,6 +1,6 @@
 
 import { create } from "zustand";
-import { DebtorInfo, PaymentTransaction, SoldProduct } from "@/types/debtor";
+import { DebtorInfo, PaymentTransaction, SoldProduct, ReturnedProduct, DebtReduction } from "@/types/debtor";
 
 interface DebtorState {
   debtorInfo: DebtorInfo | null;
@@ -8,6 +8,7 @@ interface DebtorState {
   selectedDebtorId: string | null;
   totalDebtAmount: number;
   totalPaidAmount: number;
+  totalReductionAmount: number;
   loading: boolean;
   error: string | null;
   limit: number;
@@ -62,12 +63,42 @@ const mockSoldProducts2: SoldProduct[] = [
   }
 ];
 
+const mockReturnedProducts: ReturnedProduct[] = [
+  {
+    id: "r1",
+    name: "Steel Bars",
+    quantity: 2,
+    unit: "pcs",
+    unitPrice: 25.0,
+    returnDate: "2023-06-10T10:00:00Z",
+    reason: "Defective items"
+  }
+];
+
+const mockDebtReductions: DebtReduction[] = [
+  {
+    id: "dr1",
+    amount: [{ amount: 50, unit: { code: "USD" } }],
+    reason: "Product return credit",
+    createdAt: "2023-06-10T10:00:00Z",
+    type: "product_return"
+  },
+  {
+    id: "dr2",
+    amount: [{ amount: 20, unit: { code: "USD" } }],
+    reason: "Customer loyalty discount",
+    createdAt: "2023-06-15T14:30:00Z",
+    type: "discount"
+  }
+];
+
 export const useDebtorStore = create<DebtorState>((set, get) => ({
   debtorInfo: null,
   debtorHistory: [],
   selectedDebtorId: null,
   totalDebtAmount: 0,
   totalPaidAmount: 0,
+  totalReductionAmount: 0,
   loading: false,
   error: null,
   limit: 10,
@@ -114,7 +145,9 @@ export const useDebtorStore = create<DebtorState>((set, get) => ({
               paymentMethod: "Cash"
             }
           ],
-          soldProducts: mockSoldProducts
+          soldProducts: mockSoldProducts,
+          returnedProducts: mockReturnedProducts,
+          debtReductions: mockDebtReductions
         },
         {
           payment: {
@@ -132,7 +165,9 @@ export const useDebtorStore = create<DebtorState>((set, get) => ({
               paymentMethod: "Credit Card"
             }
           ],
-          soldProducts: mockSoldProducts2
+          soldProducts: mockSoldProducts2,
+          returnedProducts: [],
+          debtReductions: []
         },
         {
           payment: {
@@ -142,7 +177,9 @@ export const useDebtorStore = create<DebtorState>((set, get) => ({
             amount: [{ amount: 180, unit: { code: "USD" } }]
           },
           transactions: [],
-          soldProducts: []
+          soldProducts: [],
+          returnedProducts: [],
+          debtReductions: []
         }
       ];
       
@@ -159,12 +196,21 @@ export const useDebtorStore = create<DebtorState>((set, get) => ({
         ), 
         0
       );
+
+      const totalReductions = mockTransactions.reduce(
+        (sum, transaction) => sum + (transaction.debtReductions || []).reduce(
+          (reductionSum, reduction) => reductionSum + reduction.amount.reduce((amtSum, amt) => amtSum + amt.amount, 0),
+          0
+        ),
+        0
+      );
       
       set({
         debtorInfo: mockDebtorInfo,
         debtorHistory: mockTransactions,
         totalDebtAmount: totalDebt,
         totalPaidAmount: totalPaid,
+        totalReductionAmount: totalReductions,
         totalItems: mockTransactions.length,
         loading: false
       });

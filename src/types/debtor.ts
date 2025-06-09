@@ -29,10 +29,30 @@ export interface SoldProduct {
   unitPrice: number;
 }
 
+export interface ReturnedProduct {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  returnDate: string;
+  reason?: string;
+}
+
+export interface DebtReduction {
+  id: string;
+  amount: MoneyAmount[];
+  reason: string;
+  createdAt: string;
+  type: 'product_return' | 'adjustment' | 'discount';
+}
+
 export interface PaymentTransaction {
   payment: Payment;
   transactions: Transaction[];
   soldProducts: SoldProduct[];
+  returnedProducts?: ReturnedProduct[];
+  debtReductions?: DebtReduction[];
 }
 
 export interface DebtorInfo {
